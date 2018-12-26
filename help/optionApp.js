@@ -85,28 +85,47 @@ module.exports ={
     /*创建新密钥，并授权 app，可通过此密钥签名文件，发布信息*/
     createSecret:async function(){
         return new Promise((resolve,reject)=>{
-            const key     = keyPair;
             const appAdd  = 'f3daa1ad2bca77681aebc0de51699b0a179aeb27';
+            const key     = keyPair;
             const payload = {
                 appAddress  : appAdd,
                 authAddress : key.address,
-                authorized  : true,//是否授权
+                authorized  : true,
             };
             const message = utility.rollObject(payload);
             const sign    = utility.signText(message, user.keystore, user.password);
+
             const data    = {
                 payload : payload,
                 sig     : sign.sig,
             };
             // const
-            global.api.post('/api/apps/authenticate').send(data).end((err,res)=>{
-               resolve({
-                   body:res.body,
-                   privateKey:key.privateKey
-               })
+            global.api.post(
+                '/api/apps/authenticate'
+            ).send(data).end((err,res)=>{
+                console.log('我是授权信息：',res.body);
+                resolve(res.body)
             });
         })
     },
+
+/*{ errors: [],
+    data:
+    { appAuthentication:
+    { id: 1851,
+        userAddress: 'ee6ddad145f681fd5bd19eca003c9d204d214471',
+        status: 'VERIFIED',
+        createdAt: '2018-12-26T07:11:55.000Z',
+        updatedAt: '2018-12-26T07:11:55.000Z',
+        signature:
+        '32a8e36e0b4b01c5ffc3c2fccfe57ac2e2bbe457828da8dcf2cbec27f8a63cc151a3ae2eb7649b8faf107e21d39bbdff166acff00a6509e66365a25f605ee59a0',
+            appAddress: 'c609224f9590e60fae1723ad4d612c2db1a41595',
+        authAddress: '25ae786bb3708467a5226715ec8892d9c4722ec2' } },
+    success: true }*/
+
+
+
+
     cancelSecret:async function(){
         return new Promise((resolve,reject)=>{
             const appAdd  = 'e3577744579f8ae92182c6aaeee22b19e76e342d';

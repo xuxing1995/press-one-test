@@ -5,7 +5,7 @@ let fileSign = require('../../../help/fileSign');
 
 /*签名文本文件*/
 router.post('/text',async(req,res)=>{
-    let content = req.body.content;
+    let content = req.body.html;
     let ret = await fileSign.signTextFile(content);
     res.send(ret)
 });

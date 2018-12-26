@@ -27,8 +27,8 @@ module.exports={
         return new Promise((resolve,reject)=>{
             fs.writeFileSync(url, data, 'utf-8');
             const content = fs.readFileSync(url, 'utf-8');
-            // const sign = utility.signFile(content, user.keystore, user.password);
-            const sign = utility.signFileViaKey(content, user.privateKey);
+            const sign = utility.signFile(content, user.keystore, user.password);
+            // const sign = utility.signFileViaKey(content, user.privateKey);
             global.api.post(
                 '/api/filesign'
             ).field(

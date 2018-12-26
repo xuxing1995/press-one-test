@@ -14,5 +14,6 @@ router.use('/bindContract',require('./bindContract'));
 router.use('/signText',require('./signText'));
 router.use('/getKeyStore',require('./getKeyStore'));
 router.use('/otherContract',require('./otherContract'));
+router.use('/test',require('./test'));
 
 module.exports = router;

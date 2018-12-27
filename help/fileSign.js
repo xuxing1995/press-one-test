@@ -8,7 +8,6 @@ const keythereum = require('keythereum');
 
 
 
-
 let tempFile = `../${String(Date.now())}.md`;
 let url      = path.join(__dirname, tempFile);
 
@@ -27,8 +26,8 @@ module.exports={
         return new Promise((resolve,reject)=>{
             fs.writeFileSync(url, data, 'utf-8');
             const content = fs.readFileSync(url, 'utf-8');
-            const sign = utility.signFile(content, user.keystore, user.password);
-            // const sign = utility.signFileViaKey(content, user.privateKey);
+            let privateKey = utility.recoverPrivateKey(user.keystore,user.password);
+            const sign = utility.signFileViaKey(content, privateKey);
             global.api.post(
                 '/api/filesign'
             ).field(
@@ -36,7 +35,7 @@ module.exports={
             ).field(
                 'address',     user.address
             ).field(
-                'title',       '节点旅行'
+                'title',       'testing title'
             ).field(
                 'source',      'Google'
             ).field(
@@ -45,12 +44,13 @@ module.exports={
                 'file',        url
             ).set('Accept', 'application/json').end((err, res) => {
                 console.log(res.body);
-                // res.status.should.equal(200);
-                // msghash = res.body.block.msghash;
                 resolve(res.body);
+                res.status.should.equal(200);
+                msghash = res.body.block.msghash;
             });
             // this.timeout(1000 * 200);
-        })
+
+        });
     },
     //签名图片（.png  .jpg  .gif）
     signImage:async function(){

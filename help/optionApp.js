@@ -1,7 +1,6 @@
 
 var utility = require('./utility');
 var async = require('async');
-
 let appAddress = null;
 let keyPair    = utility.createKeyPair({dump: true});
 
@@ -9,7 +8,7 @@ module.exports ={
     createApp:async function(){
         return new Promise((resolve,reject)=>{
             const payload = {
-                name        : 'travel network_test_05',
+                name        : 'travel network_test_07',
                 description : 'Travel Network powered by PRESS ONE.',
                 url         : 'https://www.travel-network.xin',
                 logo        : 'https://www.travel-network.xin/images/logo.png',
@@ -85,7 +84,7 @@ module.exports ={
     /*创建新密钥，并授权 app，可通过此密钥签名文件，发布信息*/
     createSecret:async function(){
         return new Promise((resolve,reject)=>{
-            const appAdd  = 'f3daa1ad2bca77681aebc0de51699b0a179aeb27';
+            const appAdd  = 'c609224f9590e60fae1723ad4d612c2db1a41595';
             const key     = keyPair;
             const payload = {
                 appAddress  : appAdd,
@@ -103,7 +102,6 @@ module.exports ={
             global.api.post(
                 '/api/apps/authenticate'
             ).send(data).end((err,res)=>{
-                console.log('我是授权信息：',res.body);
                 resolve(res.body)
             });
         })

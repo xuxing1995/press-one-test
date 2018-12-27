@@ -6,9 +6,10 @@ const ethUtil    = require('ethereumjs-util'),
     secp256k1  = require('secp256k1'),
     jsSha3     = require('js-sha3'),
     keythereum = require('keythereum'),
-    ec         = new require('elliptic').ec('secp256k1');
+    ec         = new require('elliptic').ec('secp256k1'),
+    qs = require('qs');
 
-//
+//加密密码
 const hashPassword = (email, password) =>{
     const msghash = keccak256(password + email);
     return msghash;
@@ -21,13 +22,13 @@ const jsonApiPackage = (obj, address, privatekey) => {
     signed_obj.data    = obj;
     return signed_obj;
 }
-
+//获取授权的keyStrore
 const getAuthHeaderViaKeystore = (path, payload, _keystore, password) => {
     const keystore   = JSON.parse(_keystore);
     const privatekey = keythereum.recover(password, keystore);
     return getAuthHeaderViaPrivateKey(path, payload, privatekey);
 }
-
+//
 const getAuthHeaderViaPrivateKey = (path, payload, privatekey) => {
     const address = keythereum.privateKeyToAddress(privatekey).slice(2);
     const auth       = jsonApiPackage({ path, payload }, address, privatekey);
@@ -37,8 +38,17 @@ const getAuthHeaderViaPrivateKey = (path, payload, privatekey) => {
         'X-Po-Auth-Sig'     : auth.sig,
         'X-Po-Auth-Msghash' : auth.msghash
     };
-}
-
+};
+const getAuthHeader = (path, payload, address, privateKey) => {
+    const sign = getAuthSignature(path, payload, privateKey);
+    return {
+        'Content-Type': 'application/json',
+        'X-Po-Auth-Address': address,
+        'X-Po-Auth-Sig': sign.signature,
+        'X-Po-Auth-Msghash': sign.hash,
+    };
+};
+//签名文件
 const sign = (message, privatekey) => {
     const msghash = keccak256(message);
     return signByMsghash(msghash, privatekey);
@@ -52,7 +62,7 @@ const signByMsghash = (msghash, privatekey) => {
         + signature.recoveryParam.toString();
     return {sig: combinedHex, msghash: msghash};
 };
-
+//获取授权的签名
 const getAuthSignature = (path, payload, _keystore, password) => {
     const keystore = JSON.parse(_keystore);
     const pkeyhex  = keythereum.recover(password, keystore);
@@ -251,6 +261,34 @@ let createKeyPair = (options = {}) => {
         address    : fetchKey(publishAdd, options),
     };
 };
+const recoverPrivateKey = (keystore, password) => {
+    const privateKey = keythereum.recover(password, JSON.parse(keystore));
+    return buf2hex(privateKey);
+};
+const buf2hex = buffer => {
+    return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
+};
+const sortedToQueryString = (obj) => {
+    const _obj = Object.create(null);
+    const sortedKeys = Object.keys(obj).sort();
+    for (const key of sortedKeys) {
+        _obj[key] = obj[key];
+    }
+    return qs.stringify(_obj);
+};
+const calcObjectHash = (obj) => {
+    const data = sortedToQueryString(obj);
+    const hash = keccak256(data);
+    return hash;
+};
+const signBlockData = (data, privateKey) => {
+    const hash = calcObjectHash(data);
+    const { sig } = signByMsghash(hash, privateKey);
+    return {
+        hash,
+        signature: sig,
+    };
+};
 
 module.exports = {
     getAuthHeaderViaKeystore,
@@ -265,6 +303,9 @@ module.exports = {
     keccak256,
     sha256,
     randomString,
+    getAuthHeader,
     createKeyPair,
     hashPassword,
+    recoverPrivateKey,
+    signBlockData
 };
